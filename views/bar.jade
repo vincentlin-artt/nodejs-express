@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  h1 Hello World!
+
+  p 這是一個文章段落。
+  
+  p hello, #{message}
+  
+  img(src='https://travis-ci.org/block0/nodejs-express.svg?branch=master')
+
+  - var n = 0
+  ul
+    while n < 4
+      li= n++

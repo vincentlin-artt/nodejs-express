@@ -4,6 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -23,9 +24,35 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// connect to MongoDB server and provide the collection schema
+app.use(function(req, res, next) {
+  mongoose.connect('mongodb://test:123456@ds151242.mlab.com:51242/vcard');
+  var db = mongoose.connection;
+
+  var userSchema = mongoose.Schema({
+      Name: String,
+      Phone: String,
+      Email: String,
+      Address: String,
+      Age: Number
+  });
+
+  db.once('open', function callback () {
+    console.log('MongoDB: connected.');
+
+    app.db = {
+      model: {
+        User: mongoose.model('User', userSchema)
+      }
+    };
+
+    next();
+  });
+});
+
 app.use('/', routes);
 app.use('/users', users);
-app.use('/hello', hello);
+app.use('/jollen', hello);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

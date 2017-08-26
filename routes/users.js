@@ -1,9 +1,32 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET users listing. */
+/**
+ * GET /users
+ */
 router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+  var db = req.app.db.model.User;
+});
+
+/**
+ * GET /users/:id
+ */
+router.get('/:id', function(req, res, next) {
+  var db = req.app.db.model.User;
+});
+
+/**
+ * PUT /users/:id
+ */
+router.put('/:id', function(req, res, next) {
+  var db = req.app.db.model.User;
+});
+
+/**
+ * PUT /users/:id
+ */
+router.delete('/:id', function(req, res, next) {
+  var db = req.app.db.model.User;
 });
 
 module.exports = router;
