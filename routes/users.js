@@ -6,6 +6,10 @@ var router = express.Router();
  */
 router.get('/', function(req, res, next) {
   var db = req.app.db.model.User;
+
+  db.find({}, function(err, users) {
+  	res.json(users);
+  });
 });
 
 /**
@@ -13,6 +17,13 @@ router.get('/', function(req, res, next) {
  */
 router.get('/:id', function(req, res, next) {
   var db = req.app.db.model.User;
+
+  // See: http://expressjs.com/en/guide/routing.html
+  var id = req.params.id;
+
+  db.find({_id: id}, function(err, user) {
+  	res.json(user);
+  });  
 });
 
 /**

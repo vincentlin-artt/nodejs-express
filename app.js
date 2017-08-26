@@ -26,6 +26,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // connect to MongoDB server and provide the collection schema
 app.use(function(req, res, next) {
+  if (typeof app.db !== 'undefined')
+    next();
+
   mongoose.connect('mongodb://test:123456@ds151242.mlab.com:51242/vcard');
   var db = mongoose.connection;
 
