@@ -6,6 +6,12 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
+var passport = require('passport')
+  , FacebookStrategy = require('passport-facebook').Strategy;
+
+var FACEBOOK_APP_ID = '1559480364270197';
+var FACEBOOK_APP_SECRET = '4d5d1e9389c179142348cbb7044bdab1';
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var hello = require('./routes/hello');
@@ -23,6 +29,28 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+//
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
+
+passport.use(new FacebookStrategy({
+    clientID: FACEBOOK_APP_ID,
+    clientSecret: FACEBOOK_APP_SECRET,
+    callbackURL: "/"
+  },
+  function(accessToken, refreshToken, profile, done) {
+    return done(null, profile);
+  }
+)); 
 
 // connect to MongoDB server and provide the collection schema
 app.use(function(req, res, next) {
@@ -54,6 +82,16 @@ app.use(function(req, res, next) {
 });
 
 app.use('/', routes);
+app.get('/login',
+  passport.authenticate('facebook', { failureRedirect: '/login/fail' }),
+  function(req, res, next) {
+    res.redirect('/');
+});
+app.use('/users', function(req, res, next) {
+  if (req.isAuthenticated())
+    next();
+  res.redirect('/login');
+});
 app.use('/users', users);
 app.use('/jollen', hello);
 
