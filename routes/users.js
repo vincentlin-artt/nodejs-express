@@ -31,13 +31,26 @@ router.get('/:id', function(req, res, next) {
  */
 router.put('/:id', function(req, res, next) {
   var db = req.app.db.model.User;
+  var id = req.params.id;
+  var phone = req.body.phone;
+
+  db
+  .update({_id: id}, { $set: {Phone: phone} })
+  .exec(function(err, nModified) {
+    res.send({ status: "ok" });
+  });
 });
 
 /**
- * PUT /users/:id
+ * DELETE /users/:id
  */
 router.delete('/:id', function(req, res, next) {
   var db = req.app.db.model.User;
+  var id = req.params.id;
+
+  db.remove({_id: id}, function(err, result) {
+    res.send(result);
+  });  
 });
 
 module.exports = router;
