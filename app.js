@@ -10,8 +10,8 @@ var session = require('express-session');
 // Passport
 var passport = require('passport')
   , FacebookStrategy = require('passport-facebook').Strategy;
-var FACEBOOK_APP_ID = '1559480364270197';
-var FACEBOOK_APP_SECRET = '4d5d1e9389c179142348cbb7044bdab1';
+var FACEBOOK_APP_ID = '752090094976053';
+var FACEBOOK_APP_SECRET = 'a1c36c47b495e45ec3e5282906a993c6';
 
 // Main app
 var routes = require('./routes/index');
@@ -37,33 +37,34 @@ app.use(function(req, res, next) {
   if (typeof app.db !== 'undefined')
     next();
 
-  // MongoDB schema
-  var userSchema = mongoose.Schema({
-      Name: String,
-      Phone: String,
-      Email: String,
-      Address: String,
-      Age: Number,
-      Passport: {
-        facebook: {
-          id: String,
-          accessToken: String,
-          refreshToken: String
-        }
-      }
-  });
-
-  app.db = {
-    model: {
-      User: mongoose.model('User', userSchema)
-    }
-  };
-
-  mongoose.connect('mongodb://test:123456@ds151242.mlab.com:51242/vcard');
+  mongoose.connect('mongodb://<dbuser>:<dbpasswd>@ds151242.mlab.com:51242/vcard');
   var db = mongoose.connection;
 
   db.once('open', function callback () {
     console.log('MongoDB: connected.');
+
+    // MongoDB schema
+    var userSchema = mongoose.Schema({
+        Name: String,
+        Phone: String,
+        Email: String,
+        Address: String,
+        Age: Number,
+        Passport: {
+          facebook: {
+            id: String,
+            accessToken: String,
+            refreshToken: String
+          }
+        }
+    });
+
+    app.db = {
+      model: {
+        User: mongoose.model('User', userSchema)
+      }
+    };
+
     next();
   });
 });
@@ -73,7 +74,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.serializeUser(function(user, done) {
-  console.log(user)
   /*
     console.log(user):
 
@@ -90,11 +90,11 @@ passport.serializeUser(function(user, done) {
     _raw: '{"name":"Jollen Chen","id":"10152357375973133"}',
     _json: { name: 'Jollen Chen', id: '10152357375973133' } }
   */
-  done(null, user);
+  done(null, user._id);
 });
 
-passport.deserializeUser(function(user, done) {
-  done(null, user);
+passport.deserializeUser(function(id, done) {
+  done(null, id);
 });
 
 passport.use(new FacebookStrategy({
