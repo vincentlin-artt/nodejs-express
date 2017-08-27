@@ -32,6 +32,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Session store
+var session = require('express-session');
+app.use(session({
+  secret: '3xxi3388'
+}));
+
 // connect to MongoDB server and provide the collection schema
 app.use(function(req, res, next) {
   if (typeof app.db !== 'undefined')
@@ -78,7 +84,9 @@ passport.serializeUser(function(user, done) {
 });
 
 passport.deserializeUser(function(id, done) {
-  done(null, id);
+  app.db.model.User.findOne({_id: id}, function(err, user) {
+    done(null, user);                                       
+  });  
 });
 
 passport.use(new FacebookStrategy({
