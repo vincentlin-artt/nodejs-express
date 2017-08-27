@@ -37,7 +37,7 @@ app.use(function(req, res, next) {
   if (typeof app.db !== 'undefined')
     next();
 
-  mongoose.connect('mongodb://<dbuser>:<dbpasswd>@ds151242.mlab.com:51242/vcard');
+  mongoose.connect('mongodb://jollen:qazwsx@ds151242.mlab.com:51242/vcard');
   var db = mongoose.connection;
 
   db.once('open', function callback () {
@@ -74,22 +74,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.serializeUser(function(user, done) {
-  /*
-    console.log(user):
-
-  { id: '10152357375973133',
-    username: undefined,
-    displayName: 'Jollen Chen',
-    name: 
-     { familyName: undefined,
-       givenName: undefined,
-       middleName: undefined },
-    gender: undefined,
-    profileUrl: undefined,
-    provider: 'facebook',
-    _raw: '{"name":"Jollen Chen","id":"10152357375973133"}',
-    _json: { name: 'Jollen Chen', id: '10152357375973133' } }
-  */
   done(null, user._id);
 });
 
