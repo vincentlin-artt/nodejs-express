@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var session = require('express-session');
+var busboy = require('connect-busboy');
 
 // Passport
 var passport = require('passport')
@@ -31,6 +32,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(busboy({ immediate: true }));
 
 // Session store
 var session = require('express-session');
@@ -127,10 +129,11 @@ app.get('/login/return', passport.authenticate('facebook', { failureRedirect: '/
   });
 app.get('/users', require('connect-ensure-login').ensureLoggedIn({ 
   setReturnTo: '/users', 
-  redirectTo: '/login' 
+  redirectTo: '/login'
 }));
 app.use('/users', users);
 app.use('/jollen', hello);
+app.post('/upload', require('./routes/upload').upload);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
