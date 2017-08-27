@@ -5,13 +5,15 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var session = require('express-session');
 
+// Passport
 var passport = require('passport')
   , FacebookStrategy = require('passport-facebook').Strategy;
-
 var FACEBOOK_APP_ID = '1559480364270197';
 var FACEBOOK_APP_SECRET = '4d5d1e9389c179142348cbb7044bdab1';
 
+// Main app
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var hello = require('./routes/hello');
@@ -30,68 +32,108 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-//
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
-});
-
-passport.use(new FacebookStrategy({
-    clientID: FACEBOOK_APP_ID,
-    clientSecret: FACEBOOK_APP_SECRET,
-    callbackURL: "/"
-  },
-  function(accessToken, refreshToken, profile, done) {
-    return done(null, profile);
-  }
-)); 
-
 // connect to MongoDB server and provide the collection schema
 app.use(function(req, res, next) {
   if (typeof app.db !== 'undefined')
     next();
 
-  mongoose.connect('mongodb://test:123456@ds151242.mlab.com:51242/vcard');
-  var db = mongoose.connection;
-
+  // MongoDB schema
   var userSchema = mongoose.Schema({
       Name: String,
       Phone: String,
       Email: String,
       Address: String,
-      Age: Number
+      Age: Number,
+      Passport: {
+        facebook: {
+          id: String,
+          accessToken: String,
+          refreshToken: String
+        }
+      }
   });
+
+  app.db = {
+    model: {
+      User: mongoose.model('User', userSchema)
+    }
+  };
+
+  mongoose.connect('mongodb://test:123456@ds151242.mlab.com:51242/vcard');
+  var db = mongoose.connection;
 
   db.once('open', function callback () {
     console.log('MongoDB: connected.');
-
-    app.db = {
-      model: {
-        User: mongoose.model('User', userSchema)
-      }
-    };
-
     next();
   });
 });
 
+//
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function(user, done) {
+  console.log(user)
+  /*
+    console.log(user):
+
+  { id: '10152357375973133',
+    username: undefined,
+    displayName: 'Jollen Chen',
+    name: 
+     { familyName: undefined,
+       givenName: undefined,
+       middleName: undefined },
+    gender: undefined,
+    profileUrl: undefined,
+    provider: 'facebook',
+    _raw: '{"name":"Jollen Chen","id":"10152357375973133"}',
+    _json: { name: 'Jollen Chen', id: '10152357375973133' } }
+  */
+  done(null, user);
+});
+
+passport.deserializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.use(new FacebookStrategy({
+    clientID: FACEBOOK_APP_ID,
+    clientSecret: FACEBOOK_APP_SECRET,
+    callbackURL: "/login/return"
+  },
+  function(accessToken, refreshToken, profile, done) {
+    app.db.model.User.findOne({"Passport.facebook.id": profile._json.id}, function(err, user) {
+        if (!user) {
+          var obj = {
+            Name: profile.displayName,
+            Passport: {
+              facebook: {
+                id: ''+ profile.id,
+                accessToken: accessToken,
+                refreshToken: refreshToken
+              }
+            }
+          };
+    
+          var doc = new app.db.model.User(obj);
+          doc.save();
+    
+          user = doc;
+        }
+    
+        return done(null, user); // verify callback                                         
+    });
+  }
+)); 
+
 app.use('/', routes);
-app.get('/login',
-  passport.authenticate('facebook', { failureRedirect: '/login/fail' }),
+app.get('/login', passport.authenticate('facebook'));
+app.get('/login/return', passport.authenticate('facebook', { failureRedirect: '/login/fail' }),
   function(req, res, next) {
     res.redirect('/');
-});
-app.use('/users', function(req, res, next) {
-  if (req.isAuthenticated())
-    next();
-  res.redirect('/login');
-});
+  });
+app.get('/users', require('connect-ensure-login').ensureLoggedIn('/login'));
 app.use('/users', users);
 app.use('/jollen', hello);
 
