@@ -123,9 +123,12 @@ app.use('/', routes);
 app.get('/login', passport.authenticate('facebook'));
 app.get('/login/return', passport.authenticate('facebook', { failureRedirect: '/login/fail' }),
   function(req, res, next) {
-    res.redirect('/');
+    res.redirect(req.session.returnTo);
   });
-app.get('/users', require('connect-ensure-login').ensureLoggedIn('/login'));
+app.get('/users', require('connect-ensure-login').ensureLoggedIn({ 
+  setReturnTo: '/users', 
+  redirectTo: '/login' 
+}));
 app.use('/users', users);
 app.use('/jollen', hello);
 
