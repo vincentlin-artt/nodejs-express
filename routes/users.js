@@ -27,6 +27,25 @@ router.get('/:id', function(req, res, next) {
 });
 
 /**
+ * POST /users
+ */
+router.post('/', function(req, res, next) {
+  var User = req.app.db.model.User;
+  var user = {
+    Name:     req.body.Name,
+    Phone:    req.body.Phone,
+    Email:    req.body.Email,
+    Address:  req.body.Address,
+    Age:      req.body.Age
+  };
+
+  var doc = new User(user);
+  doc.save();
+
+  res.end();
+});
+
+/**
  * PUT /users/:id
  */
 router.put('/:id', function(req, res, next) {

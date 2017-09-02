@@ -127,11 +127,11 @@ app.get('/login/return', passport.authenticate('facebook', { failureRedirect: '/
   function(req, res, next) {
     res.redirect(req.session.returnTo);
   });
+app.use('/users', users);
 app.get('/users', require('connect-ensure-login').ensureLoggedIn({ 
   setReturnTo: '/users', 
   redirectTo: '/login'
 }));
-app.use('/users', users);
 app.use('/jollen', hello);
 app.post('/upload', require('./routes/upload').upload);
 
