@@ -1,6 +1,9 @@
 var express = require('express');
 var router = express.Router();
 var etag = require('etag');
+var Memcached = require('memcached');
+
+var memcached = new Memcached('127.0.0.1:11211');
 
 /**
  * GET /users
@@ -8,7 +11,7 @@ var etag = require('etag');
 router.get('/', function(req, res, next) {
   var db = req.app.db.model.User;
 
-  db.find({}, function(err, users) {
+  var response = function(users, cb) {
     // Stateless
     res.setHeader('Connection', 'close');
 
@@ -27,7 +30,20 @@ router.get('/', function(req, res, next) {
     res.setHeader('ETag', etagString);
     //res.append('Last-Modified', 'Sat, 02 Sep 2017 16:00:00 GMT');
 
-  	res.json(users);
+    res.json(users);
+
+    cb();
+  };
+
+  memcached.get('api_get_users', function (err, data) {
+    if (typeof !=== 'undefined')
+      return response(data);
+
+    db.find({}, function(err, users) {
+      response(users , function() {
+        memcached.set('api_get_users', users);        
+      });
+    });    
   });
 });
 

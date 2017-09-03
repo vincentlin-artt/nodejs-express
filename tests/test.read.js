@@ -24,11 +24,23 @@ var request = require('superagent');
 request
   .get('http://localhost:3000/users')
   .end(function(err, res){
-  	if (typeof res !== 'undefined') 
-  		return console.log(res.text);
 
-  	return console.log('failed');
-  });
+  if (res.statusCode !== 200) 
+  	return console('fail');
+
+  if (typeof res.headers.etag === 'undefined') 
+  	return console.log('fail');
+
+  request
+    .get('http://localhost:3000/users')
+    .set('If-None-Match', res.headers.etag)
+    .end(function(err, res) {
+      if (res.statusCode !== 304)
+      	return console.log('fail');
+    });
+
+    return console.log('ok');
+});
 
 
 
