@@ -49,7 +49,7 @@ app.use(function(req, res, next) {
   db.once('open', function callback () {
     console.log('MongoDB: connected.');
 
-    // MongoDB schema
+    // User System schema
     var userSchema = mongoose.Schema({
         Name: String,
         Phone: String,
@@ -64,6 +64,16 @@ app.use(function(req, res, next) {
           }
         }
     });
+
+
+
+        // Blog System schema
+        var postSchema = mongoose.Schema({
+        Title: {type: String, default: 'No tiltle'},
+        Content: {type: String, default:'No content'},
+        UserId: {type: mongoose.Schema.Types.ObjectId, ref: 'USer'},
+        TimeCreated : {type: Date, default: Date.now}
+      });
 
     app.db = {
       model: {
